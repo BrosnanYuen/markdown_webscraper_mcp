@@ -1,0 +1,9 @@
+{
+  "mcp_server_name": "My Webscraping MCP Server",
+  "mcp_server_url": "http://localhost:8888",
+  "enable_wildcard_scraping": true,
+  "remove_header_footer": true,
+  "markdown_convert": true,
+  "time_delay": 2,
+  "total_timeout": 180
+}
