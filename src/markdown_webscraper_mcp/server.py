@@ -43,5 +43,4 @@ def run_server(config: MCPServerConfig) -> None:
     else:
         port = 443 if parsed.scheme == "https" else 80
 
-    path = parsed.path if parsed.path else "/mcp"
-    mcp.run(transport="http", host=host, port=port, path=path)
+    mcp.run(transport="http", host=host, port=port, path="/")

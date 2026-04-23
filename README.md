@@ -21,8 +21,8 @@ It supports both single URL scraping and wildcard recursive scraping (configurab
   - failure: `{ "status": "failed to fetch!" }`
 - Transport config via `mcp_server_url` supporting:
   - `stdio://`
-  - `http://host:port/path`
-  - `https://host:port/path` (server still runs HTTP transport; TLS should be terminated by proxy)
+  - `http://host:port`
+  - `https://host:port` (server still runs HTTP transport; TLS should be terminated by proxy)
 
 ## Installation
 
@@ -45,7 +45,7 @@ Create `config.json`:
 ```json
 {
   "mcp_server_name": "My Webscraping MCP Server",
-  "mcp_server_url": "http://localhost:8888/mcp",
+  "mcp_server_url": "http://localhost:8888",
   "enable_wildcard_scraping": true,
   "remove_header_footer": true,
   "markdown_convert": true,

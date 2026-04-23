@@ -21,6 +21,8 @@ def _validate_server_url(server_url: str) -> None:
     parsed = urlparse(server_url)
     if parsed.scheme not in {"http", "https", "stdio"}:
         raise ValueError("mcp_server_url scheme must be one of: http, https, stdio")
+    if parsed.scheme in {"http", "https"} and parsed.path not in {"", "/"}:
+        raise ValueError("mcp_server_url must not include a path for http/https; use host:port only")
 
 
 def load_config(config_path: str | Path) -> MCPServerConfig:

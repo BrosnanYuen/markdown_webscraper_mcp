@@ -68,7 +68,7 @@ async def test_integration_mcp_tools_live(tmp_path: Path) -> None:
         json.dumps(
             {
                 "mcp_server_name": "My Webscraping MCP Server",
-                "mcp_server_url": f"http://127.0.0.1:{port}/mcp",
+                "mcp_server_url": f"http://127.0.0.1:{port}",
                 "enable_wildcard_scraping": True,
                 "remove_header_footer": True,
                 "markdown_convert": True,
@@ -96,7 +96,7 @@ async def test_integration_mcp_tools_live(tmp_path: Path) -> None:
             if server_proc.poll() is not None:
                 raise AssertionError("MCP server exited before tests started")
             try:
-                async with streamable_http_client(f"http://127.0.0.1:{port}/mcp") as (read, write, _):
+                async with streamable_http_client(f"http://127.0.0.1:{port}") as (read, write, _):
                     async with ClientSession(read, write) as session:
                         await session.initialize()
                         break
@@ -105,7 +105,7 @@ async def test_integration_mcp_tools_live(tmp_path: Path) -> None:
         else:
             raise AssertionError("MCP server did not become ready")
 
-        async with streamable_http_client(f"http://127.0.0.1:{port}/mcp") as (read, write, _):
+        async with streamable_http_client(f"http://127.0.0.1:{port}") as (read, write, _):
             async with ClientSession(read, write) as session:
                 await session.initialize()
 
