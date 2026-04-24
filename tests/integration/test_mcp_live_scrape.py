@@ -20,6 +20,18 @@ def _integration_enabled() -> bool:
     return os.getenv("RUN_INTEGRATION") == "1"
 
 
+def _extract_log_message_text(data: object) -> str | None:
+    if isinstance(data, dict):
+        msg = data.get("msg")
+        if isinstance(msg, str):
+            return msg
+        return None
+    msg = getattr(data, "msg", None)
+    if isinstance(msg, str):
+        return msg
+    return None
+
+
 async def _extract_status(result) -> str:
     structured = getattr(result, "structuredContent", None)
     if isinstance(structured, dict) and "status" in structured:
@@ -106,8 +118,23 @@ async def test_integration_mcp_tools_live(tmp_path: Path) -> None:
             raise AssertionError("MCP server did not become ready")
 
         async with streamable_http_client(f"http://127.0.0.1:{port}") as (read, write, _):
-            async with ClientSession(read, write) as session:
+            completion_notifications: list[str] = []
+
+            async def _logging_callback(params) -> None:
+                message = _extract_log_message_text(params.data)
+                if not message:
+                    return
+                try:
+                    payload = json.loads(message)
+                except json.JSONDecodeError:
+                    return
+                status = payload.get("status")
+                if isinstance(status, str):
+                    completion_notifications.append(status)
+
+            async with ClientSession(read, write, logging_callback=_logging_callback) as session:
                 await session.initialize()
+                await session.set_logging_level("debug")
 
                 site_dir = tmp_path / "example_site"
                 pdf_dir = tmp_path / "ti_pdf"
@@ -151,6 +178,9 @@ async def test_integration_mcp_tools_live(tmp_path: Path) -> None:
                     dir_path=str(wildcard_dir),
                 )
                 assert wildcard_status == "fetch completed and markdown saved!"
+
+                await asyncio.sleep(0.5)
+                assert completion_notifications.count("fetch completed and markdown saved!") >= 3
 
         assert list((site_dir / "raw_html").rglob("*.html"))
         assert list((site_dir / "markdown").rglob("*.md"))

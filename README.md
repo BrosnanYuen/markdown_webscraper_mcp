@@ -13,12 +13,19 @@ It supports both single URL scraping and wildcard recursive scraping (configurab
   - `get_website(url, dir_path)`
   - `get_status_website(url, dir_path)`
   - `get_wildcard_website(url, dir_path)` (only when enabled)
+- Per-session execution model:
+  - each MCP client session gets its own dedicated worker thread
+  - scraping jobs are queued FIFO within that session
+  - tool calls return immediately and never block on scraping
 - Immediate async response on start:
-  - `{ "status": "fetching website and converting to markdown in progress!" }`
+  - `{ "status": "fetching website and converting to markdown in progress!", "operation": "get_website" }`
 - Status responses:
-  - completed: `{ "status": "fetch completed and markdown saved!" }`
-  - timeout: `{ "status": "fetching timed out!" }`
-  - failure: `{ "status": "failed to fetch!" }`
+  - completed: `{ "status": "fetch completed and markdown saved!", "operation": "<operation_name>" }`
+  - timeout: `{ "status": "fetching timed out!", "operation": "<operation_name>" }`
+  - failure: `{ "status": "failed to fetch!", "operation": "<operation_name>" }`
+- Server-to-client notifications:
+  - when a job completes, the server sends a completion notification
+  - when a job fails or times out, the server sends a failure/timeout notification
 - Transport config via `mcp_server_url` supporting:
   - `stdio://`
   - `http://host:port`
@@ -73,15 +80,18 @@ python -m markdown_webscraper_mcp.cli --config config.json
 
 - Starts non-blocking scrape for a single URL (`individual_websites=[url]`)
 - Returns immediate in-progress status
+- Enqueued per client session and run in FIFO order
 
 ### `get_wildcard_website(url, dir_path)`
 
 - Starts non-blocking recursive scrape (`wildcard_websites=[url]`)
 - Available only when `enable_wildcard_scraping=true`
+- Enqueued per client session and run in FIFO order
 
 ### `get_status_website(url, dir_path)`
 
 - Polls the latest job status for that `(url, dir_path)` pair
+- Status is session-scoped (same URL/path in different sessions are isolated)
 
 ## Output Structure
 
